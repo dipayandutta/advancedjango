@@ -3,8 +3,10 @@ from bokeh.plotting import figure
 from bokeh.embed import components
 from bokeh.models import HoverTool,LassoSelectTool,WheelZoomTool,PointDrawTool,ColumnDataSource
 from bokeh.palettes import Category20c,Spectral6
+from bokeh.transform import cumsum
 from .models import Products
-
+import pandas as pd 
+from numpy import pi
 # Create your views here.
 def home(request):
 
@@ -133,3 +135,75 @@ def programming(request):
     script, div = components(p)
 
     return render(request, 'programming.html' , {'script': script, 'div':div})
+
+
+def pie(request):
+
+    template = 'pie.html'
+
+    x = {'united states':157,'united kingdom':93, 'Japan': 89, 'China': 63,
+        'Germany': 44, 'India': 42, 'Italy': 40, 'Australia': 35,
+        'Brazil': 32, 'France': 31, 'Taiwan': 31, 'Spain': 29}
+
+
+    data = pd.Series(x).reset_index(name='value').rename(columns={'index':'country'})
+    data['angle'] = data['value']/data['value'].sum() * 2*pi 
+    data['color'] = Category20c[len(x)]
+
+    p = figure(plot_height=600,plot_width=800,title="Pie Chart",toolbar_location=None,
+            tools="hover",tooltips="@country:@value"
+            )
+    p.wedge(x=0,y=1,radius=0.4,start_angle=cumsum('angle',include_zero=True),end_angle=cumsum('angle'),
+            line_color="royalblue",fill_color='color',legend='country',source=data)
+
+
+    script,div = components(p)
+
+    context = {'script':script,'div':div}
+
+    return render(request,template,context)
+
+def piechartDB(request):
+
+    template = 'piechart.html'
+
+
+    car_price = []
+    car_model = []
+
+    cars = []
+    price = []
+
+    
+    car_price = Products.objects.values_list('price',flat=True)
+    car_model = Products.objects.values_list('name',flat=True)
+
+    
+
+    for prc in car_price:
+        price.append(prc)
+
+    for model in car_model:
+        cars.append(model)
+
+
+    x = dict(zip(cars,price))
+
+    print(x)
+
+     
+    data = pd.Series(x).reset_index(name='value').rename(columns={'index':'country'})
+    data['angle'] = data['value']/data['value'].sum() * 2*pi 
+    data['color'] = Category20c[len(x)]
+
+    p = figure(plot_height=600,plot_width=800,title="Pie Chart",toolbar_location=None,
+            tools="hover",tooltips="@country:@value"
+            )
+    p.wedge(x=0,y=1,radius=0.4,start_angle=cumsum('angle',include_zero=True),end_angle=cumsum('angle'),
+            line_color="royalblue",fill_color='color',legend='country',source=data)
+
+
+    script , div = components(p)
+    context = {'script':script,'div':div}
+
+    return render(request,template,context)
