@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Main
+{% endblock title %}
+
+{% block content %}
+
+    Hello World
+    <p>
+        {{df | safe}}
+    </p>
+    <p>
+        {{ describe | safe}}
+    </p>
+{% endblock content %}
